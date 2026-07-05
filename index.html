@@ -389,6 +389,11 @@ textarea#importArea{width:100%;min-height:90px;background:var(--surface-alt);bor
 /* ==================== STATE ==================== */
 const STORAGE_KEY = 'controle_financeiro_v1';
 
+/* ====== CONFIGURAÇÃO DO DESENVOLVEDOR (preencher uma única vez) ======
+   Cole aqui o Client ID OAuth criado no Google Cloud Console.
+   Isso NÃO aparece para o cliente final — é fixo no código do app. */
+const GOOGLE_CLIENT_ID = 'COLE_SEU_CLIENT_ID_AQUI.apps.googleusercontent.com';
+
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
 function defaultExpenseCatalog(){
@@ -411,7 +416,6 @@ function defaultState(){
     config:{
       orgName:'Meu Controle Financeiro',
       subtitle:'Gestão de receitas e despesas',
-      googleClientId:'',
       driveFolderId:null,
       driveBackupFileId:null,
       sheetId:null,
@@ -503,9 +507,9 @@ let accessToken = null;
 let syncTimer = null;
 
 function initGoogleAuth(){
-  if(!window.google || !window.google.accounts || !state.config.googleClientId) return false;
+  if(!window.google || !window.google.accounts || isClientIdUnset()) return false;
   tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: state.config.googleClientId,
+    client_id: GOOGLE_CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets',
     callback: async (resp)=>{
       if(resp.error){ showToast('Erro ao conectar: '+resp.error); return; }
@@ -516,8 +520,12 @@ function initGoogleAuth(){
   return true;
 }
 
+function isClientIdUnset(){
+  return !GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf('COLE_SEU_CLIENT_ID_AQUI')===0;
+}
+
 function connectGoogle(){
-  if(!state.config.googleClientId){ showToast('Cole o Client ID do Google antes de conectar'); return; }
+  if(isClientIdUnset()){ showToast('Conexão com o Google ainda não configurada'); return; }
   if(!tokenClient && !initGoogleAuth()){
     showToast('Aguarde o Google carregar e tente novamente'); return;
   }
@@ -810,6 +818,72 @@ function calcMonth(key){
   return {totalFixas, totalVariaveis, totalDespesas, agencyGross, agencyCosts, agencyNet, kauanGross, kauanVarCosts, kauanFixed, kauanNet, totalReceita, saldo};
 }
 
+// Reads a month's totals without creating/persisting it if it doesn't exist yet (used for past-month previews)
+function calcMonthSafe(key){
+  if(state.months[key]) return calcMonth(key);
+  return {totalFixas:0,totalVariaveis:0,totalDespesas:0,agencyGross:0,agencyCosts:0,agencyNet:0,kauanGross:0,kauanVarCosts:0,kauanFixed:0,kauanNet:0,totalReceita:0,saldo:0,_empty:true};
+}
+
+function truncateLabel(s,n){ s=s||''; return s.length>n ? s.slice(0,n-1)+'…' : s; }
+
+function getTopExpenses(key, n){
+  const m = getMonth(key);
+  return m.expenses
+    .map(it=>({name:it.name, value:computePaidValue(it)}))
+    .filter(x=>x.value>0)
+    .sort((a,b)=>b.value-a.value)
+    .slice(0,n||5);
+}
+
+function getTopIncomes(key, n){
+  const m = getMonth(key);
+  const list=[];
+  m.agency.contracts.forEach(c=>{
+    const share=(c.totalValue||0)*((c.commissionPercent||0)/100);
+    const costs=(c.costs||[]).reduce((s,cc)=>s+(cc.value||0),0);
+    if(c.name) list.push({name:c.name+' · Agência', value: share-costs});
+  });
+  m.kauan.jobs.forEach(j=>{
+    const share=(j.value||0)*((j.commissionPercent||0)/100);
+    const vcosts=(j.variableCosts||[]).reduce((s,vc)=>s+(vc.value||0),0);
+    if(j.name) list.push({name:j.name+' · Kauan', value: share-vcosts});
+  });
+  return list.filter(x=>x.value>0).sort((a,b)=>b.value-a.value).slice(0,n||5);
+}
+
+function renderRankedBars(items, colorVar){
+  if(!items.length) return '<div class="empty-state" style="padding:14px 0;">Sem dados este mês.</div>';
+  const max = Math.max(...items.map(i=>i.value),1);
+  return items.map(i=>`
+    <div class="bar-row">
+      <div class="bar-label" style="width:118px;" title="${escapeAttr(i.name)}">${escapeHtml(truncateLabel(i.name,17))}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(i.value/max*100)}%;background:${colorVar}"></div></div>
+      <div class="bar-val mono">${fmt(i.value)}</div>
+    </div>
+  `).join('');
+}
+
+function renderLast3MonthsChart(){
+  const keys = [shiftMonthKey(state.currentMonth,-2), shiftMonthKey(state.currentMonth,-1), state.currentMonth];
+  const stats = keys.map(k=>({key:k, c:calcMonthSafe(k)}));
+  const maxVal = Math.max(...stats.map(s=>Math.max(s.c.totalReceita, s.c.totalDespesas)), 1);
+  return stats.map(s=>`
+    <div style="margin-bottom:12px;">
+      <div style="font-size:12px;color:${s.key===state.currentMonth?'var(--gold)':'var(--text-dim)'};margin-bottom:5px;text-transform:capitalize;font-weight:${s.key===state.currentMonth?'600':'400'};">${monthLabel(s.key)}</div>
+      <div class="bar-row" style="margin-bottom:4px;">
+        <div class="bar-label" style="width:58px;">Receita</div>
+        <div class="bar-track"><div class="bar-fill income" style="width:${(s.c.totalReceita/maxVal*100)}%"></div></div>
+        <div class="bar-val mono">${fmt(s.c.totalReceita)}</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="width:58px;">Despesa</div>
+        <div class="bar-track"><div class="bar-fill expense" style="width:${(s.c.totalDespesas/maxVal*100)}%"></div></div>
+        <div class="bar-val mono">${fmt(s.c.totalDespesas)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
 /* ==================== DASHBOARD ==================== */
 function renderDashboard(){
   const c = calcMonth(state.currentMonth);
@@ -849,6 +923,21 @@ function renderDashboard(){
     <div class="ledger-row"><span class="ledger-name">Receita · Kauan</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.kauanNet)}</span></div>
     <div class="ledger-row"><span class="ledger-name">Despesas fixas</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.totalFixas)}</span></div>
     <div class="ledger-row"><span class="ledger-name">Despesas variáveis</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.totalVariaveis)}</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Últimos 3 meses</div>
+    ${renderLast3MonthsChart()}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Maiores despesas do mês</div>
+    ${renderRankedBars(getTopExpenses(state.currentMonth,5), 'var(--expense)')}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Maiores receitas do mês</div>
+    ${renderRankedBars(getTopIncomes(state.currentMonth,5), 'var(--income)')}
   </div>
   `;
 }
@@ -1161,17 +1250,12 @@ function renderAjustes(){
 
   <div class="card">
     <div class="card-title">Google Drive &amp; Planilha</div>
-    <div class="settings-row" style="flex-direction:column;align-items:stretch;">
-      <div style="margin-bottom:8px;"><div class="lbl">Client ID do Google</div><div class="sub">Gerado no Google Cloud Console — veja o passo a passo abaixo</div></div>
-      <input type="text" id="googleClientIdInput" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${escapeAttr(state.config.googleClientId||'')}">
-      <button class="btn" style="margin-top:8px;" data-action="save-client-id">Salvar Client ID</button>
-    </div>
     <div class="settings-row">
       <div>
-        <div class="lbl">Status da conexão</div>
-        <div class="sub">${accessToken ? 'Conectado ao Google' : 'Não conectado'}${state.config.lastSync ? ' · última sincronização: '+new Date(state.config.lastSync).toLocaleString('pt-BR') : ''}</div>
+        <div class="lbl">Conexão com o Google</div>
+        <div class="sub">${accessToken ? 'Conectado — comprovantes e dados sincronizados automaticamente' : 'Faça login para salvar comprovantes e dados no seu Google Drive'}${state.config.lastSync ? ' · última sincronização: '+new Date(state.config.lastSync).toLocaleString('pt-BR') : ''}</div>
       </div>
-      <button class="btn gold" data-action="connect-google">${accessToken?'Reconectar':'Conectar ao Google'}</button>
+      <button class="btn gold" data-action="connect-google">${accessToken?'Reconectar':'Fazer login com o Google'}</button>
     </div>
     ${state.config.sheetId ? `
     <div class="settings-row">
@@ -1182,19 +1266,6 @@ function renderAjustes(){
       <div><div class="lbl">Sincronizar agora</div><div class="sub">Atualiza manualmente o backup e a planilha no Drive</div></div>
       <button class="btn" data-action="sync-now">Sincronizar</button>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Como gerar o Client ID (uma vez só)</div>
-    <ol style="font-size:12.5px;color:var(--text-dim);padding-left:18px;line-height:1.7;margin:0;">
-      <li>Acesse console.cloud.google.com e crie um projeto</li>
-      <li>Em "APIs e serviços", ative <b>Google Drive API</b> e <b>Google Sheets API</b></li>
-      <li>Configure a "Tela de consentimento OAuth" como app externo (modo de teste já funciona, adicione seu e-mail como usuário de teste)</li>
-      <li>Em "Credenciais", crie um "ID do cliente OAuth" do tipo "Aplicativo da Web"</li>
-      <li>Em "Origens JavaScript autorizadas", adicione o endereço onde este app fica hospedado (ex: o link do GitHub Pages)</li>
-      <li>Copie o Client ID e cole no campo acima</li>
-    </ol>
-    <div style="font-size:11.5px;color:var(--gold-dim);margin-top:10px;">O app só acessa arquivos que ele mesmo cria no seu Drive (pasta "Comprovantes" e a planilha) — nunca o restante da sua conta. Como é um site sem servidor, a conexão expira depois de um tempo; basta clicar em "Reconectar" quando isso acontecer.</div>
   </div>
 
   <div class="card">
@@ -1493,14 +1564,6 @@ function attachHandlers(){
   });
 
   // AJUSTES
-  bindAction('save-client-id', ()=>{
-    const val = document.getElementById('googleClientIdInput').value.trim();
-    state.config.googleClientId = val;
-    tokenClient = null;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    showToast('Client ID salvo');
-  });
-
   bindAction('connect-google', ()=>{ connectGoogle(); });
 
   bindAction('sync-now', async ()=>{
@@ -1582,7 +1645,7 @@ document.getElementById('orgSubtitle').oninput = (e)=>{ state.config.subtitle = 
 getMonth(state.currentMonth);
 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 render();
-window.addEventListener('load', ()=>{ if(state.config.googleClientId) initGoogleAuth(); });
+window.addEventListener('load', ()=>{ if(!isClientIdUnset()) initGoogleAuth(); });
 </script>
 </body>
 </html>
