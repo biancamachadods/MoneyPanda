@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Controle Financeiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#12151b;
+  --surface:#1b1f27;
+  --surface-alt:#232833;
+  --border:#2e3440;
+  --text:#edebe6;
+  --text-dim:#9ba1ac;
+  --gold:#c9a24b;
+  --gold-dim:#8a7538;
+  --income:#3fae8f;
+  --income-bg:rgba(63,174,143,0.12);
+  --expense:#d8493e;
+  --expense-bg:rgba(216,73,62,0.12);
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  padding-bottom:84px;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+::selection{background:var(--gold);color:#12151b;}
+
+/* HEADER */
+header.app-header{
+  background:linear-gradient(180deg,#171b22,#12151b);
+  border-bottom:1px solid var(--border);
+  padding:22px 20px 16px;
+  position:relative;
+}
+.header-rule{
+  height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent 70%);
+  margin-top:14px;
+  border-radius:2px;
+}
+.org-name{
+  font-family:'Fraunces',serif;
+  font-size:26px;
+  font-weight:600;
+  letter-spacing:0.2px;
+  cursor:text;
+  outline:none;
+  display:inline-block;
+  min-width:40px;
+}
+.org-subtitle{
+  color:var(--text-dim);
+  font-size:13.5px;
+  margin-top:4px;
+  cursor:text;
+  outline:none;
+  display:inline-block;
+  min-width:40px;
+}
+.edit-hint{
+  font-size:10.5px;
+  color:var(--gold-dim);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  margin-top:2px;
+}
+[contenteditable="true"]:focus{
+  background:var(--surface-alt);
+  border-radius:6px;
+  padding:2px 6px;
+  margin:-2px -6px;
+}
+
+/* MONTH NAV */
+.month-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin-top:16px;
+}
+.month-nav button{
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--gold);
+  width:32px;height:32px;
+  border-radius:50%;
+  font-size:16px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.month-nav button:hover{background:var(--surface-alt);}
+.month-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14px;
+  letter-spacing:0.03em;
+  color:var(--text);
+  text-transform:capitalize;
+  min-width:150px;
+  text-align:center;
+}
+
+/* TABS */
+nav.tabbar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:#171b22;
+  border-top:1px solid var(--border);
+  display:flex;
+  z-index:50;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav.tabbar button{
+  flex:1;
+  background:none;
+  border:none;
+  color:var(--text-dim);
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  padding:10px 2px 8px;
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  border-top:2px solid transparent;
+}
+nav.tabbar button .ic{font-size:18px;line-height:1;}
+nav.tabbar button.active{color:var(--gold);border-top-color:var(--gold);}
+
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px;}
+
+/* CARDS */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:14px;
+}
+.card-title{
+  font-family:'Fraunces',serif;
+  font-size:17px;
+  font-weight:600;
+  margin:0 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.section-eyebrow{
+  color:var(--gold);
+  font-size:11px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  font-weight:600;
+}
+
+/* DASHBOARD STAT */
+.stat-hero{
+  text-align:center;
+  padding:26px 18px 22px;
+}
+.stat-hero .lbl{color:var(--text-dim);font-size:12.5px;text-transform:uppercase;letter-spacing:0.1em;}
+.stat-hero .val{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:38px;
+  font-weight:600;
+  margin-top:6px;
+}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.stat-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 16px;
+}
+.stat-box .lbl{font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;}
+.stat-box .val{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-top:4px;}
+.stat-box.income .val{color:var(--income);}
+.stat-box.expense .val{color:var(--expense);}
+
+.bar-compare{margin-top:6px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bar-row .bar-label{width:74px;font-size:12px;color:var(--text-dim);flex-shrink:0;}
+.bar-track{flex:1;background:var(--surface-alt);border-radius:6px;height:10px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;}
+.bar-fill.income{background:var(--income);}
+.bar-fill.expense{background:var(--expense);}
+.bar-row .bar-val{font-family:'IBM Plex Mono',monospace;font-size:12px;width:88px;text-align:right;flex-shrink:0;}
+
+/* LEDGER ROWS */
+.ledger-row{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  padding:11px 0;
+  border-bottom:1px dashed var(--border);
+}
+.ledger-row:last-child{border-bottom:none;}
+.ledger-name{
+  font-size:14.5px;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.ledger-dots{
+  flex:1;
+  border-bottom:2px dotted var(--border);
+  margin-bottom:4px;
+  min-width:16px;
+}
+.ledger-value{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14.5px;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.badge{
+  font-size:10px;
+  padding:2px 7px;
+  border-radius:20px;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  font-weight:600;
+  flex-shrink:0;
+}
+.badge.fixa{background:var(--surface-alt);color:var(--text-dim);border:1px solid var(--border);}
+.badge.variavel{background:rgba(201,162,75,0.12);color:var(--gold);border:1px solid var(--gold-dim);}
+.split-tag{
+  font-size:10px;color:var(--income);background:var(--income-bg);
+  padding:2px 7px;border-radius:20px;flex-shrink:0;font-weight:600;
+}
+
+.item-block{
+  border-bottom:1px solid var(--border);
+  padding:12px 0;
+}
+.item-block:last-child{border-bottom:none;}
+.item-top{display:flex;align-items:center;gap:8px;}
+.item-detail{
+  margin-top:10px;
+  padding:12px;
+  background:var(--surface-alt);
+  border-radius:10px;
+  display:none;
+}
+.item-detail.open{display:block;}
+.field-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.field{flex:1;min-width:110px;}
+.field label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;}
+input[type=text], input[type=number], select{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+}
+input.mono-input{font-family:'IBM Plex Mono',monospace;}
+input:focus,select:focus{outline:1px solid var(--gold);}
+
+.btn{
+  border:1px solid var(--border);
+  background:var(--surface-alt);
+  color:var(--text);
+  padding:7px 12px;
+  border-radius:8px;
+  font-size:12.5px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  font-weight:500;
+}
+.btn:hover{border-color:var(--gold-dim);}
+.btn.gold{background:var(--gold);color:#1a1509;border-color:var(--gold);font-weight:600;}
+.btn.gold:hover{background:#dab35c;}
+.btn.ghost{background:none;}
+.btn.danger{color:var(--expense);}
+.btn.small{padding:4px 9px;font-size:11.5px;}
+.icon-btn{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;padding:4px;flex-shrink:0;
+}
+.icon-btn:hover{color:var(--gold);}
+
+.add-btn-row{margin-top:14px;text-align:center;}
+.add-btn-row .btn{width:100%;}
+
+.split-controls{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
+.split-quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.you-pay{
+  margin-top:8px;
+  font-size:13px;
+  background:var(--income-bg);
+  color:var(--income);
+  padding:8px 10px;
+  border-radius:8px;
+  font-family:'IBM Plex Mono',monospace;
+}
+
+.totals-footer{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.totals-footer .ledger-row .ledger-name{font-weight:600;}
+.totals-footer .ledger-value{font-weight:700;font-size:16px;}
+
+.empty-state{
+  text-align:center;
+  padding:26px 10px;
+  color:var(--text-dim);
+  font-size:13.5px;
+}
+
+.subcard{
+  background:var(--surface-alt);
+  border-radius:10px;
+  padding:12px 14px;
+  margin-top:10px;
+}
+.subcard-title{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--gold);margin-bottom:8px;font-weight:600;}
+
+.net-line{
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'IBM Plex Mono',monospace;font-size:14px;
+  padding-top:8px;margin-top:6px;border-top:1px dashed var(--border);
+}
+.net-line.positive{color:var(--income);}
+.net-line.negative{color:var(--expense);}
+
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px;}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .lbl{font-size:14px;}
+.settings-row .sub{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+
+textarea#importArea{width:100%;min-height:90px;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
+
+.toast{
+  position:fixed;bottom:96px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:#1a1509;padding:9px 18px;border-radius:20px;
+  font-size:13px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.4);
+  z-index:99;opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.toast.show{opacity:1;}
+
+@media(min-width:600px){
+  nav.tabbar{position:sticky;top:0;border-top:none;border-bottom:1px solid var(--border);}
+  body{padding-bottom:0;}
+  nav.tabbar button{flex-direction:row;padding:14px 8px;font-size:12.5px;}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="org-name" id="orgName" contenteditable="true" spellcheck="false"></div>
+  <div class="org-subtitle" id="orgSubtitle" contenteditable="true" spellcheck="false"></div>
+  <div class="edit-hint">toque no título ou subtítulo para editar</div>
+  <div class="header-rule"></div>
+  <div class="month-nav">
+    <button id="prevMonth">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button id="nextMonth">›</button>
+  </div>
+</header>
+
+<nav class="tabbar">
+  <button data-tab="dashboard" class="active"><span class="ic">◆</span>Início</button>
+  <button data-tab="despesas"><span class="ic">▤</span>Despesas</button>
+  <button data-tab="agencia"><span class="ic">✎</span>Agência</button>
+  <button data-tab="kauan"><span class="ic">★</span>Kauan</button>
+  <button data-tab="ajustes"><span class="ic">⚙</span>Ajustes</button>
+</nav>
+
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== STATE ==================== */
+const STORAGE_KEY = 'controle_financeiro_v1';
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+function defaultExpenseCatalog(){
+  return [
+    {id:uid(), name:'Aluguel', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Água', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Luz', type:'variavel', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Internet', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Gás', type:'variavel', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Cabeleireiro mensal', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Plano de Celular', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Pagamento Empréstimo', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Mercado', type:'variavel', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+    {id:uid(), name:'Pensão', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}},
+  ];
+}
+
+function defaultState(){
+  return {
+    config:{
+      orgName:'Meu Controle Financeiro',
+      subtitle:'Gestão de receitas e despesas',
+      googleClientId:'',
+      driveFolderId:null,
+      driveBackupFileId:null,
+      sheetId:null,
+      lastSync:null
+    },
+    currentMonth: monthKeyNow(),
+    months:{}
+  };
+}
+
+function monthKeyNow(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+
+function shiftMonthKey(key, delta){
+  let [y,m] = key.split('-').map(Number);
+  m += delta;
+  while(m>12){m-=12;y++;}
+  while(m<1){m+=12;y--;}
+  return y+'-'+String(m).padStart(2,'0');
+}
+
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const names=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return names[m-1]+' de '+y;
+}
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return defaultState();
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  scheduleCloudSync();
+}
+
+function emptyMonthPayload(){
+  return {
+    expenses: defaultExpenseCatalog(),
+    agency:{ contracts:[] },
+    kauan:{ fixedCosts:[], jobs:[] }
+  };
+}
+
+// returns month data, creating it (cloning most recent prior month's recurring structures) if absent
+function getMonth(key){
+  if(state.months[key]) return state.months[key];
+
+  const keys = Object.keys(state.months).sort();
+  const priorKeys = keys.filter(k=>k<key);
+  if(priorKeys.length===0){
+    state.months[key] = emptyMonthPayload();
+  } else {
+    const prior = state.months[priorKeys[priorKeys.length-1]];
+    state.months[key] = {
+      expenses: JSON.parse(JSON.stringify(prior.expenses)),
+      agency:{ contracts: [] },
+      kauan:{ fixedCosts: JSON.parse(JSON.stringify(prior.kauan.fixedCosts)), jobs: [] }
+    };
+  }
+  saveState();
+  return state.months[key];
+}
+
+/* ==================== HELPERS ==================== */
+function fmt(v){
+  if(isNaN(v)) v=0;
+  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+
+function computePaidValue(item){
+  if(!item.split || !item.split.enabled) return item.value||0;
+  if(item.split.mode==='percent') return (item.value||0) * ((item.split.percent||0)/100);
+  if(item.split.mode==='people') return (item.value||0) / (item.split.people||1);
+  return item.value||0;
+}
+
+/* ==================== GOOGLE DRIVE / SHEETS INTEGRATION ==================== */
+let tokenClient = null;
+let accessToken = null;
+let syncTimer = null;
+
+function initGoogleAuth(){
+  if(!window.google || !window.google.accounts || !state.config.googleClientId) return false;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: state.config.googleClientId,
+    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets',
+    callback: async (resp)=>{
+      if(resp.error){ showToast('Erro ao conectar: '+resp.error); return; }
+      accessToken = resp.access_token;
+      await onGoogleConnected();
+    }
+  });
+  return true;
+}
+
+function connectGoogle(){
+  if(!state.config.googleClientId){ showToast('Cole o Client ID do Google antes de conectar'); return; }
+  if(!tokenClient && !initGoogleAuth()){
+    showToast('Aguarde o Google carregar e tente novamente'); return;
+  }
+  tokenClient.requestAccessToken({prompt: accessToken?'':'consent'});
+}
+
+async function driveFetch(url, options={}){
+  options.headers = Object.assign({}, options.headers, {Authorization:'Bearer '+accessToken});
+  return fetch(url, options);
+}
+
+async function ensureFolder(){
+  if(state.config.driveFolderId) return state.config.driveFolderId;
+  const q = encodeURIComponent(`name='Comprovantes' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
+  const data = await res.json();
+  if(data.files && data.files.length){
+    state.config.driveFolderId = data.files[0].id;
+  } else {
+    const createRes = await driveFetch('https://www.googleapis.com/drive/v3/files', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name:'Comprovantes', mimeType:'application/vnd.google-apps.folder'})
+    });
+    const created = await createRes.json();
+    state.config.driveFolderId = created.id;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  return state.config.driveFolderId;
+}
+
+function slugUpper(s){
+  return (s||'ITEM').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'') || 'ITEM';
+}
+function todayDDMMYYYY(){
+  const d = new Date();
+  return String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+d.getFullYear();
+}
+function buildReceiptName(categoryLabel, itemName, ext){
+  return `COMPROVANTE_${todayDDMMYYYY()}_${slugUpper(categoryLabel)}_${slugUpper(itemName)}_${uid().slice(0,4)}.${ext}`;
+}
+
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+function dataUrlToFile(dataUrl, mime, fileName){
+  const arr = dataUrl.split(',');
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8 = new Uint8Array(n);
+  while(n--) u8[n] = bstr.charCodeAt(n);
+  return new File([u8], fileName, {type:mime});
+}
+
+async function uploadReceiptFile(file, standardName){
+  const folderId = await ensureFolder();
+  const metadata = {name: standardName, parents:[folderId]};
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+  form.append('file', file);
+  const res = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {method:'POST', body: form});
+  const data = await res.json();
+  if(!data.id) throw new Error('upload falhou');
+  await driveFetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({role:'reader', type:'anyone'})
+  });
+  return {id:data.id, link:data.webViewLink};
+}
+
+function findEntityById(id){
+  const m = getMonth(state.currentMonth);
+  return m.expenses.find(x=>x.id===id) || m.agency.contracts.find(x=>x.id===id) || m.kauan.jobs.find(x=>x.id===id);
+}
+
+async function doUploadReceipt(entity, categoryLabel){
+  try{
+    if(!entity.receipt || !entity.receipt.dataUrl) return;
+    const file = dataUrlToFile(entity.receipt.dataUrl, entity.receipt.mimeType, entity.receipt.fileName);
+    const ext = (entity.receipt.fileName.split('.').pop()||'pdf').toLowerCase();
+    const standardName = buildReceiptName(categoryLabel, entity.name, ext);
+    const result = await uploadReceiptFile(file, standardName);
+    entity.receipt.driveFileId = result.id;
+    entity.receipt.driveLink = result.link;
+    entity.receipt.uploadedAt = new Date().toISOString();
+    entity.receipt.dataUrl = null;
+    saveState(); render();
+    showToast('Comprovante enviado ao Drive');
+  }catch(e){
+    showToast('Erro ao enviar comprovante');
+  }
+}
+
+async function pushBackupToDrive(){
+  if(!accessToken) return;
+  const content = JSON.stringify(state);
+  const blob = new Blob([content], {type:'application/json'});
+  if(state.config.driveBackupFileId){
+    await driveFetch(`https://www.googleapis.com/upload/drive/v3/files/${state.config.driveBackupFileId}?uploadType=media`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body: blob
+    });
+  } else {
+    const folderId = await ensureFolder();
+    const metadata = {name:'controle_financeiro_backup.json', parents:[folderId]};
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)],{type:'application/json'}));
+    form.append('file', blob);
+    const res = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {method:'POST', body: form});
+    const data = await res.json();
+    state.config.driveBackupFileId = data.id;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+}
+
+async function findBackupFileInDrive(){
+  const folderId = await ensureFolder();
+  const q = encodeURIComponent(`name='controle_financeiro_backup.json' and '${folderId}' in parents and trashed=false`);
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
+  const data = await res.json();
+  if(data.files && data.files.length) return data.files[0].id;
+  return null;
+}
+
+async function pullBackupFromDrive(){
+  if(!accessToken || !state.config.driveBackupFileId) return null;
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${state.config.driveBackupFileId}?alt=media`);
+  if(!res.ok) return null;
+  try{ return await res.json(); }catch(e){ return null; }
+}
+
+async function ensureSheet(){
+  if(state.config.sheetId) return state.config.sheetId;
+  const res = await driveFetch('https://sheets.googleapis.com/v4/spreadsheets', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      properties:{title:(state.config.orgName||'Controle Financeiro')+' - Planilha'},
+      sheets:[{properties:{title:'Despesas'}},{properties:{title:'Receita Agencia'}},{properties:{title:'Receita Kauan'}}]
+    })
+  });
+  const data = await res.json();
+  if(!data.spreadsheetId) throw new Error('falha ao criar planilha');
+  state.config.sheetId = data.spreadsheetId;
+  const folderId = await ensureFolder();
+  await driveFetch(`https://www.googleapis.com/drive/v3/files/${data.spreadsheetId}?addParents=${folderId}`, {method:'PATCH'});
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  return state.config.sheetId;
+}
+
+async function writeRange(sheetId, range, values){
+  await driveFetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({range, majorDimension:'ROWS', values})
+  });
+}
+
+async function syncSheet(){
+  if(!accessToken) return;
+  const sheetId = await ensureSheet();
+  const monthKeys = Object.keys(state.months).sort();
+
+  const despesasRows = [['Mês','Nome','Tipo','Valor Total','Dividido','Você Paga','Comprovante']];
+  const agenciaRows = [['Mês','Contrato','Valor Total','Comissão %','Sua Parte','Gastos','Líquido','Comprovante']];
+  const kauanRows = [['Mês','Job','Tipo','Valor','Comissão %','Parte Agenciamento','Custos Variáveis','Líquido Job','Comprovante']];
+
+  monthKeys.forEach(key=>{
+    const mm = state.months[key];
+    const label = monthLabel(key);
+    mm.expenses.forEach(it=>{
+      despesasRows.push([label, it.name, it.type, it.value||0, (it.split&&it.split.enabled)?'Sim':'Não', computePaidValue(it), (it.receipt&&it.receipt.driveLink)?it.receipt.driveLink:'']);
+    });
+    mm.agency.contracts.forEach(c=>{
+      const share=(c.totalValue||0)*((c.commissionPercent||0)/100);
+      const costs=(c.costs||[]).reduce((s,cc)=>s+(cc.value||0),0);
+      agenciaRows.push([label, c.name, c.totalValue||0, c.commissionPercent||0, share, costs, share-costs, (c.receipt&&c.receipt.driveLink)?c.receipt.driveLink:'']);
+    });
+    mm.kauan.jobs.forEach(j=>{
+      const share=(j.value||0)*((j.commissionPercent||0)/100);
+      const vcosts=(j.variableCosts||[]).reduce((s,vc)=>s+(vc.value||0),0);
+      kauanRows.push([label, j.name, j.type, j.value||0, j.commissionPercent||0, share, vcosts, share-vcosts, (j.receipt&&j.receipt.driveLink)?j.receipt.driveLink:'']);
+    });
+  });
+
+  await writeRange(sheetId, 'Despesas!A1', despesasRows);
+  await writeRange(sheetId, 'Receita Agencia!A1', agenciaRows);
+  await writeRange(sheetId, 'Receita Kauan!A1', kauanRows);
+}
+
+function scheduleCloudSync(){
+  if(!accessToken) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async ()=>{
+    try{
+      await pushBackupToDrive();
+      await syncSheet();
+      state.config.lastSync = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if(activeTab==='ajustes') render();
+    }catch(e){ /* fails silently, will retry on next change */ }
+  }, 2500);
+}
+
+async function onGoogleConnected(){
+  showToast('Conectado ao Google');
+  try{
+    await ensureFolder();
+    if(!state.config.driveBackupFileId){
+      const found = await findBackupFileInDrive();
+      if(found) state.config.driveBackupFileId = found;
+    }
+    if(state.config.driveBackupFileId){
+      if(confirm('Foi encontrado um backup no Google Drive. Importar agora? (substitui os dados deste dispositivo)')){
+        const remote = await pullBackupFromDrive();
+        if(remote && remote.config && remote.months){ state = remote; }
+      }
+    }
+    await ensureSheet();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    await syncSheet();
+    state.config.lastSync = new Date().toISOString();
+    saveState();
+  }catch(e){
+    showToast('Conectado, mas houve um erro ao preparar o Drive');
+  }
+  render();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ==================== RENDER ROOT ==================== */
+let activeTab = 'dashboard';
+let openItemId = null; // currently expanded ledger item
+
+function render(){
+  document.getElementById('orgName').textContent = state.config.orgName;
+  document.getElementById('orgSubtitle').textContent = state.config.subtitle;
+  document.getElementById('monthLabel').textContent = monthLabel(state.currentMonth);
+
+  const main = document.getElementById('main');
+  if(activeTab==='dashboard') main.innerHTML = renderDashboard();
+  else if(activeTab==='despesas') main.innerHTML = renderDespesas();
+  else if(activeTab==='agencia') main.innerHTML = renderAgencia();
+  else if(activeTab==='kauan') main.innerHTML = renderKauan();
+  else if(activeTab==='ajustes') main.innerHTML = renderAjustes();
+
+  attachHandlers();
+}
+
+/* ==================== CALCULATIONS ==================== */
+function calcMonth(key){
+  const m = getMonth(key);
+
+  let totalFixas=0, totalVariaveis=0;
+  m.expenses.forEach(it=>{
+    const paid = computePaidValue(it);
+    if(it.type==='fixa') totalFixas+=paid; else totalVariaveis+=paid;
+  });
+  const totalDespesas = totalFixas+totalVariaveis;
+
+  let agencyGross=0, agencyCosts=0;
+  m.agency.contracts.forEach(c=>{
+    const share = (c.totalValue||0) * ((c.commissionPercent||0)/100);
+    agencyGross += share;
+    (c.costs||[]).forEach(cc=>agencyCosts+=(cc.value||0));
+  });
+  const agencyNet = agencyGross - agencyCosts;
+
+  let kauanGross=0, kauanVarCosts=0;
+  m.kauan.jobs.forEach(j=>{
+    const share = (j.value||0) * ((j.commissionPercent||0)/100);
+    kauanGross += share;
+    (j.variableCosts||[]).forEach(vc=>kauanVarCosts+=(vc.value||0));
+  });
+  const kauanFixed = m.kauan.fixedCosts.reduce((s,c)=>s+(c.value||0),0);
+  const kauanNet = kauanGross - kauanVarCosts - kauanFixed;
+
+  const totalReceita = agencyNet + kauanNet;
+  const saldo = totalReceita - totalDespesas;
+
+  return {totalFixas, totalVariaveis, totalDespesas, agencyGross, agencyCosts, agencyNet, kauanGross, kauanVarCosts, kauanFixed, kauanNet, totalReceita, saldo};
+}
+
+/* ==================== DASHBOARD ==================== */
+function renderDashboard(){
+  const c = calcMonth(state.currentMonth);
+  const maxBar = Math.max(c.totalReceita, c.totalDespesas, 1);
+  const saldoColor = c.saldo>=0 ? 'var(--income)' : 'var(--expense)';
+
+  return `
+  <div class="card stat-hero">
+    <div class="lbl">Saldo do mês</div>
+    <div class="val" style="color:${saldoColor}">${fmt(c.saldo)}</div>
+  </div>
+
+  <div class="stat-grid" style="margin-bottom:14px;">
+    <div class="stat-box income"><div class="lbl">Receitas</div><div class="val">${fmt(c.totalReceita)}</div></div>
+    <div class="stat-box expense"><div class="lbl">Despesas</div><div class="val">${fmt(c.totalDespesas)}</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Comparativo</div>
+    <div class="bar-compare">
+      <div class="bar-row">
+        <div class="bar-label">Receitas</div>
+        <div class="bar-track"><div class="bar-fill income" style="width:${(c.totalReceita/maxBar*100)}%"></div></div>
+        <div class="bar-val mono">${fmt(c.totalReceita)}</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Despesas</div>
+        <div class="bar-track"><div class="bar-fill expense" style="width:${(c.totalDespesas/maxBar*100)}%"></div></div>
+        <div class="bar-val mono">${fmt(c.totalDespesas)}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Detalhamento</div>
+    <div class="ledger-row"><span class="ledger-name">Receita · Agência</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.agencyNet)}</span></div>
+    <div class="ledger-row"><span class="ledger-name">Receita · Kauan</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.kauanNet)}</span></div>
+    <div class="ledger-row"><span class="ledger-name">Despesas fixas</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.totalFixas)}</span></div>
+    <div class="ledger-row"><span class="ledger-name">Despesas variáveis</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.totalVariaveis)}</span></div>
+  </div>
+  `;
+}
+
+/* ==================== DESPESAS TAB ==================== */
+function renderDespesas(){
+  const m = getMonth(state.currentMonth);
+  const c = calcMonth(state.currentMonth);
+
+  const rows = m.expenses.map(it=>renderExpenseItem(it)).join('') || `<div class="empty-state">Nenhuma despesa cadastrada.</div>`;
+
+  return `
+  <div class="card">
+    <div class="card-title">Despesas fixas e variáveis</div>
+    ${rows}
+    <div class="add-btn-row"><button class="btn gold" data-action="add-expense">+ Adicionar despesa</button></div>
+
+    <div class="totals-footer">
+      <div class="ledger-row"><span class="ledger-name">Total fixas</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.totalFixas)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Total variáveis</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.totalVariaveis)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Total geral (sua parte)</span><span class="ledger-dots"></span><span class="ledger-value" style="color:var(--expense)">${fmt(c.totalDespesas)}</span></div>
+    </div>
+  </div>
+  `;
+}
+
+function renderReceiptBlock(entity, categoryLabel){
+  const r = entity.receipt;
+  let inner;
+  if(r && r.driveLink){
+    inner = `<a href="${r.driveLink}" target="_blank" class="btn small" style="text-decoration:none;">📎 Ver comprovante</a> <span style="font-size:11px;color:var(--text-dim);">${escapeHtml(r.fileName||'')}</span>`;
+  } else if(r && r.dataUrl){
+    inner = `<span style="font-size:12px;color:var(--gold);">📎 ${escapeHtml(r.fileName)} — aguardando envio</span> ` +
+            (accessToken ? `<button class="btn small" data-action="upload-receipt" data-entity="${entity.id}" data-category="${categoryLabel}">Enviar ao Drive</button>` : `<span style="font-size:11px;color:var(--text-dim);">(conecte o Drive em Ajustes para enviar)</span>`);
+  } else {
+    inner = '<span style="font-size:12px;color:var(--text-dim);">Nenhum comprovante anexado</span>';
+  }
+  return `
+  <div class="subcard" style="margin-top:10px;">
+    <div class="subcard-title">Comprovante (PDF ou imagem)</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${inner}</div>
+    <input type="file" accept="application/pdf,image/jpeg,image/jpg,image/png" data-action="pick-receipt" data-entity="${entity.id}" data-category="${categoryLabel}" style="margin-top:8px;font-size:12px;color:var(--text-dim);">
+  </div>`;
+}
+
+function renderExpenseItem(it){
+  const paid = computePaidValue(it);
+  const isOpen = openItemId===it.id;
+  const splitOn = it.split && it.split.enabled;
+
+  return `
+  <div class="item-block">
+    <div class="item-top">
+      <span class="ledger-name" data-toggle-item="${it.id}" style="flex:1;cursor:pointer;">${escapeHtml(it.name)}</span>
+      <span class="badge ${it.type}">${it.type==='fixa'?'Fixa':'Variável'}</span>
+      ${splitOn?`<span class="split-tag">dividido</span>`:''}
+      <span class="ledger-value">${fmt(paid)}</span>
+      <button class="icon-btn" data-toggle-item="${it.id}">${isOpen?'▲':'▾'}</button>
+    </div>
+    <div class="item-detail ${isOpen?'open':''}">
+      <div class="field-row">
+        <div class="field">
+          <label>Nome</label>
+          <input type="text" value="${escapeAttr(it.name)}" data-field="name" data-id="${it.id}" data-group="expense">
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <select data-field="type" data-id="${it.id}" data-group="expense">
+            <option value="fixa" ${it.type==='fixa'?'selected':''}>Fixa</option>
+            <option value="variavel" ${it.type==='variavel'?'selected':''}>Variável</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Valor total (R$)</label>
+          <input type="number" step="0.01" class="mono-input" value="${it.value||0}" data-field="value" data-id="${it.id}" data-group="expense">
+        </div>
+      </div>
+
+      <div class="split-controls">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" ${splitOn?'checked':''} data-field="split-enabled" data-id="${it.id}" style="width:auto;">
+          Dividir esta conta com alguém
+        </label>
+
+        ${splitOn?`
+        <div class="split-quick" style="margin-top:8px;">
+          <button class="btn small" data-split-quick="50" data-id="${it.id}">50 / 50</button>
+          <button class="btn small" data-split-quick="33" data-id="${it.id}">1/3 (33%)</button>
+          <button class="btn small" data-split-mode="people" data-id="${it.id}">Dividir por pessoas</button>
+        </div>
+        <div class="field-row">
+          ${it.split.mode==='percent'?`
+          <div class="field">
+            <label>Você paga (%)</label>
+            <input type="number" min="0" max="100" class="mono-input" value="${it.split.percent}" data-field="split-percent" data-id="${it.id}">
+          </div>`:`
+          <div class="field">
+            <label>Nº de pessoas</label>
+            <input type="number" min="1" class="mono-input" value="${it.split.people}" data-field="split-people" data-id="${it.id}">
+          </div>`}
+        </div>
+        <div class="you-pay">Você paga: ${fmt(paid)} de ${fmt(it.value||0)}</div>
+        `:''}
+      </div>
+
+      ${renderReceiptBlock(it, 'DESPESA')}
+
+      <div style="margin-top:10px;text-align:right;">
+        <button class="btn danger small" data-action="remove-expense" data-id="${it.id}">Remover</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+/* ==================== AGÊNCIA TAB ==================== */
+function renderAgencia(){
+  const m = getMonth(state.currentMonth);
+  const c = calcMonth(state.currentMonth);
+
+  const cards = m.agency.contracts.map(ct=>renderContractCard(ct)).join('') || `<div class="empty-state">Nenhum contrato cadastrado este mês.</div>`;
+
+  return `
+  <div class="card">
+    <div class="section-eyebrow">Receita · Trabalho em agência</div>
+    <div class="card-title">Contratos do mês</div>
+    ${cards}
+    <div class="add-btn-row"><button class="btn gold" data-action="add-contract">+ Adicionar contrato</button></div>
+
+    <div class="totals-footer">
+      <div class="ledger-row"><span class="ledger-name">Sua parte (bruto)</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.agencyGross)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Gastos do serviço</span><span class="ledger-dots"></span><span class="ledger-value" style="color:var(--expense)">${fmt(c.agencyCosts)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Líquido</span><span class="ledger-dots"></span><span class="ledger-value" style="color:var(--income)">${fmt(c.agencyNet)}</span></div>
+    </div>
+  </div>
+  `;
+}
+
+function renderContractCard(ct){
+  const isOpen = openItemId===ct.id;
+  const share = (ct.totalValue||0)*((ct.commissionPercent||0)/100);
+  const costsTotal = (ct.costs||[]).reduce((s,cc)=>s+(cc.value||0),0);
+  const net = share - costsTotal;
+
+  const costRows = (ct.costs||[]).map(cc=>`
+    <div class="ledger-row">
+      <input type="text" value="${escapeAttr(cc.desc)}" data-field="desc" data-id="${cc.id}" data-parent="${ct.id}" data-group="contract-cost" style="flex:1;">
+      <input type="number" step="0.01" class="mono-input" value="${cc.value||0}" data-field="value" data-id="${cc.id}" data-parent="${ct.id}" data-group="contract-cost" style="width:100px;">
+      <button class="icon-btn" data-action="remove-contract-cost" data-id="${cc.id}" data-parent="${ct.id}">✕</button>
+    </div>
+  `).join('');
+
+  return `
+  <div class="item-block">
+    <div class="item-top">
+      <span class="ledger-name" data-toggle-item="${ct.id}" style="flex:1;cursor:pointer;">${escapeHtml(ct.name||'Novo contrato')}</span>
+      <span class="ledger-value" style="color:var(--income)">${fmt(net)}</span>
+      <button class="icon-btn" data-toggle-item="${ct.id}">${isOpen?'▲':'▾'}</button>
+    </div>
+    <div class="item-detail ${isOpen?'open':''}">
+      <div class="field-row">
+        <div class="field">
+          <label>Nome do contrato</label>
+          <input type="text" value="${escapeAttr(ct.name)}" data-field="name" data-id="${ct.id}" data-group="contract">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Valor total do contrato (R$)</label>
+          <input type="number" step="0.01" class="mono-input" value="${ct.totalValue||0}" data-field="totalValue" data-id="${ct.id}" data-group="contract">
+        </div>
+        <div class="field">
+          <label>Sua comissão (%)</label>
+          <input type="number" step="0.01" class="mono-input" value="${ct.commissionPercent||0}" data-field="commissionPercent" data-id="${ct.id}" data-group="contract">
+        </div>
+      </div>
+      <div class="you-pay" style="color:var(--gold);background:rgba(201,162,75,0.12);">Sua parte bruta: ${fmt(share)}</div>
+
+      <div class="subcard">
+        <div class="subcard-title">Gastos para este serviço</div>
+        ${costRows || '<div class="empty-state" style="padding:10px 0;">Nenhum gasto lançado.</div>'}
+        <button class="btn small" style="margin-top:8px;" data-action="add-contract-cost" data-id="${ct.id}">+ Gasto</button>
+        <div class="net-line ${net>=0?'positive':'negative'}"><span>Líquido do contrato</span><span>${fmt(net)}</span></div>
+      </div>
+
+      ${renderReceiptBlock(ct, 'AGENCIA')}
+
+      <div style="margin-top:10px;text-align:right;">
+        <button class="btn danger small" data-action="remove-contract" data-id="${ct.id}">Remover contrato</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+/* ==================== KAUAN TAB ==================== */
+function renderKauan(){
+  const m = getMonth(state.currentMonth);
+  const c = calcMonth(state.currentMonth);
+
+  const fixedRows = m.kauan.fixedCosts.map(fc=>`
+    <div class="ledger-row">
+      <input type="text" value="${escapeAttr(fc.desc)}" data-field="desc" data-id="${fc.id}" data-group="kauan-fixed" style="flex:1;">
+      <input type="number" step="0.01" class="mono-input" value="${fc.value||0}" data-field="value" data-id="${fc.id}" data-group="kauan-fixed" style="width:100px;">
+      <button class="icon-btn" data-action="remove-kauan-fixed" data-id="${fc.id}">✕</button>
+    </div>
+  `).join('') || `<div class="empty-state" style="padding:10px 0;">Nenhum custo fixo cadastrado.</div>`;
+
+  const jobCards = m.kauan.jobs.map(j=>renderJobCard(j)).join('') || `<div class="empty-state">Nenhum job cadastrado este mês.</div>`;
+
+  return `
+  <div class="card">
+    <div class="section-eyebrow">Receita · Agenciamento do artista Kauan</div>
+    <div class="card-title">Custos fixos do agenciamento</div>
+    ${fixedRows}
+    <button class="btn small" style="margin-top:8px;" data-action="add-kauan-fixed">+ Custo fixo</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Jobs fechados no mês</div>
+    ${jobCards}
+    <div class="add-btn-row"><button class="btn gold" data-action="add-job">+ Adicionar job</button></div>
+
+    <div class="totals-footer">
+      <div class="ledger-row"><span class="ledger-name">Bruto (comissão dos jobs)</span><span class="ledger-dots"></span><span class="ledger-value">${fmt(c.kauanGross)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Custos variáveis dos jobs</span><span class="ledger-dots"></span><span class="ledger-value" style="color:var(--expense)">${fmt(c.kauanVarCosts)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Custos fixos do agenciamento</span><span class="ledger-dots"></span><span class="ledger-value" style="color:var(--expense)">${fmt(c.kauanFixed)}</span></div>
+      <div class="ledger-row"><span class="ledger-name">Líquido</span><span class="ledger-dots"></span><span class="ledger-value" style="color:var(--income)">${fmt(c.kauanNet)}</span></div>
+    </div>
+  </div>
+  `;
+}
+
+function renderJobCard(j){
+  const isOpen = openItemId===j.id;
+  const share = (j.value||0)*((j.commissionPercent||0)/100);
+  const varCostsTotal = (j.variableCosts||[]).reduce((s,vc)=>s+(vc.value||0),0);
+  const net = share - varCostsTotal;
+
+  const varRows = (j.variableCosts||[]).map(vc=>`
+    <div class="ledger-row">
+      <input type="text" value="${escapeAttr(vc.desc)}" data-field="desc" data-id="${vc.id}" data-parent="${j.id}" data-group="job-cost" style="flex:1;">
+      <input type="number" step="0.01" class="mono-input" value="${vc.value||0}" data-field="value" data-id="${vc.id}" data-parent="${j.id}" data-group="job-cost" style="width:100px;">
+      <button class="icon-btn" data-action="remove-job-cost" data-id="${vc.id}" data-parent="${j.id}">✕</button>
+    </div>
+  `).join('');
+
+  return `
+  <div class="item-block">
+    <div class="item-top">
+      <span class="ledger-name" data-toggle-item="${j.id}" style="flex:1;cursor:pointer;">${escapeHtml(j.name||'Novo job')}</span>
+      <span class="badge ${j.type==='evento'?'variavel':'fixa'}">${j.type==='evento'?'Evento':'Publicidade'}</span>
+      <span class="ledger-value" style="color:var(--income)">${fmt(net)}</span>
+      <button class="icon-btn" data-toggle-item="${j.id}">${isOpen?'▲':'▾'}</button>
+    </div>
+    <div class="item-detail ${isOpen?'open':''}">
+      <div class="field-row">
+        <div class="field">
+          <label>Nome do job</label>
+          <input type="text" value="${escapeAttr(j.name)}" data-field="name" data-id="${j.id}" data-group="job">
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <select data-field="type" data-id="${j.id}" data-group="job">
+            <option value="publicidade" ${j.type==='publicidade'?'selected':''}>Publicidade</option>
+            <option value="evento" ${j.type==='evento'?'selected':''}>Evento</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Valor do job (R$)</label>
+          <input type="number" step="0.01" class="mono-input" value="${j.value||0}" data-field="value" data-id="${j.id}" data-group="job">
+        </div>
+        <div class="field">
+          <label>Comissão do agenciamento (%)</label>
+          <input type="number" step="0.01" class="mono-input" value="${j.commissionPercent||0}" data-field="commissionPercent" data-id="${j.id}" data-group="job">
+        </div>
+      </div>
+      <div class="you-pay" style="color:var(--gold);background:rgba(201,162,75,0.12);">Parte do agenciamento: ${fmt(share)}</div>
+
+      <div class="subcard">
+        <div class="subcard-title">Custos variáveis deste job</div>
+        ${varRows || '<div class="empty-state" style="padding:10px 0;">Nenhum custo lançado.</div>'}
+        <button class="btn small" style="margin-top:8px;" data-action="add-job-cost" data-id="${j.id}">+ Custo</button>
+        <div class="net-line ${net>=0?'positive':'negative'}"><span>Líquido do job</span><span>${fmt(net)}</span></div>
+      </div>
+
+      ${renderReceiptBlock(j, 'KAUAN')}
+
+      <div style="margin-top:10px;text-align:right;">
+        <button class="btn danger small" data-action="remove-job" data-id="${j.id}">Remover job</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+/* ==================== AJUSTES TAB ==================== */
+function renderAjustes(){
+  return `
+  <div class="card">
+    <div class="card-title">Identidade</div>
+    <div class="settings-row">
+      <div><div class="lbl">Nome exibido no topo</div><div class="sub">Edite diretamente no cabeçalho, no topo da tela</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Google Drive &amp; Planilha</div>
+    <div class="settings-row" style="flex-direction:column;align-items:stretch;">
+      <div style="margin-bottom:8px;"><div class="lbl">Client ID do Google</div><div class="sub">Gerado no Google Cloud Console — veja o passo a passo abaixo</div></div>
+      <input type="text" id="googleClientIdInput" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${escapeAttr(state.config.googleClientId||'')}">
+      <button class="btn" style="margin-top:8px;" data-action="save-client-id">Salvar Client ID</button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="lbl">Status da conexão</div>
+        <div class="sub">${accessToken ? 'Conectado ao Google' : 'Não conectado'}${state.config.lastSync ? ' · última sincronização: '+new Date(state.config.lastSync).toLocaleString('pt-BR') : ''}</div>
+      </div>
+      <button class="btn gold" data-action="connect-google">${accessToken?'Reconectar':'Conectar ao Google'}</button>
+    </div>
+    ${state.config.sheetId ? `
+    <div class="settings-row">
+      <div><div class="lbl">Planilha de dados</div><div class="sub">Espelha despesas e receitas de todos os meses, com o link do comprovante</div></div>
+      <a class="btn" href="https://docs.google.com/spreadsheets/d/${state.config.sheetId}/edit" target="_blank" style="text-decoration:none;">Abrir planilha</a>
+    </div>` : ''}
+    <div class="settings-row">
+      <div><div class="lbl">Sincronizar agora</div><div class="sub">Atualiza manualmente o backup e a planilha no Drive</div></div>
+      <button class="btn" data-action="sync-now">Sincronizar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Como gerar o Client ID (uma vez só)</div>
+    <ol style="font-size:12.5px;color:var(--text-dim);padding-left:18px;line-height:1.7;margin:0;">
+      <li>Acesse console.cloud.google.com e crie um projeto</li>
+      <li>Em "APIs e serviços", ative <b>Google Drive API</b> e <b>Google Sheets API</b></li>
+      <li>Configure a "Tela de consentimento OAuth" como app externo (modo de teste já funciona, adicione seu e-mail como usuário de teste)</li>
+      <li>Em "Credenciais", crie um "ID do cliente OAuth" do tipo "Aplicativo da Web"</li>
+      <li>Em "Origens JavaScript autorizadas", adicione o endereço onde este app fica hospedado (ex: o link do GitHub Pages)</li>
+      <li>Copie o Client ID e cole no campo acima</li>
+    </ol>
+    <div style="font-size:11.5px;color:var(--gold-dim);margin-top:10px;">O app só acessa arquivos que ele mesmo cria no seu Drive (pasta "Comprovantes" e a planilha) — nunca o restante da sua conta. Como é um site sem servidor, a conexão expira depois de um tempo; basta clicar em "Reconectar" quando isso acontecer.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Backup dos dados</div>
+    <div class="settings-row">
+      <div><div class="lbl">Exportar</div><div class="sub">Baixa um arquivo .json com todos os meses</div></div>
+      <button class="btn gold" data-action="export">Exportar</button>
+    </div>
+    <div class="settings-row" style="flex-direction:column;align-items:stretch;">
+      <div style="margin-bottom:8px;"><div class="lbl">Importar</div><div class="sub">Cole o conteúdo de um backup .json abaixo</div></div>
+      <textarea id="importArea" placeholder="Cole aqui o JSON do backup..."></textarea>
+      <button class="btn" style="margin-top:8px;" data-action="import">Importar backup</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Mês atual: ${monthLabel(state.currentMonth)}</div>
+    <div class="settings-row">
+      <div><div class="lbl">Limpar dados deste mês</div><div class="sub">Remove despesas, contratos e jobs deste mês (não afeta outros meses)</div></div>
+      <button class="btn danger" data-action="clear-month">Limpar</button>
+    </div>
+  </div>
+  `;
+}
+
+/* ==================== ESCAPING ==================== */
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+/* ==================== EVENT HANDLING ==================== */
+function attachHandlers(){
+  const main = document.getElementById('main');
+
+  main.querySelectorAll('[data-toggle-item]').forEach(el=>{
+    el.onclick = ()=>{
+      const id = el.getAttribute('data-toggle-item');
+      openItemId = (openItemId===id) ? null : id;
+      render();
+    };
+  });
+
+  main.querySelectorAll('input[data-group="expense"], select[data-group="expense"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const item = m.expenses.find(x=>x.id===el.dataset.id);
+      if(!item) return;
+      const f = el.dataset.field;
+      item[f] = (f==='value') ? parseFloat(el.value)||0 : el.value;
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-field="split-enabled"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const item = m.expenses.find(x=>x.id===el.dataset.id);
+      if(!item) return;
+      item.split.enabled = el.checked;
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-field="split-percent"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const item = m.expenses.find(x=>x.id===el.dataset.id);
+      if(!item) return;
+      item.split.mode='percent';
+      item.split.percent = Math.max(0, Math.min(100, parseFloat(el.value)||0));
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-field="split-people"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const item = m.expenses.find(x=>x.id===el.dataset.id);
+      if(!item) return;
+      item.split.mode='people';
+      item.split.people = Math.max(1, parseInt(el.value)||1);
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-split-quick]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      const item = m.expenses.find(x=>x.id===el.dataset.id);
+      if(!item) return;
+      item.split.mode='percent';
+      item.split.percent = parseFloat(el.getAttribute('data-split-quick'));
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-split-mode="people"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      const item = m.expenses.find(x=>x.id===el.dataset.id);
+      if(!item) return;
+      item.split.mode='people';
+      if(!item.split.people) item.split.people=2;
+      saveState(); render();
+    };
+  });
+
+  bindAction('add-expense', ()=>{
+    const m = getMonth(state.currentMonth);
+    const nit = {id:uid(), name:'Nova despesa', type:'fixa', value:0, split:{enabled:false,mode:'percent',percent:50,people:2}};
+    m.expenses.push(nit);
+    openItemId = nit.id;
+    saveState(); render();
+  });
+
+  main.querySelectorAll('[data-action="remove-expense"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      m.expenses = m.expenses.filter(x=>x.id!==el.dataset.id);
+      saveState(); render();
+    };
+  });
+
+  // CONTRACTS
+  main.querySelectorAll('input[data-group="contract"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const ct = m.agency.contracts.find(x=>x.id===el.dataset.id);
+      if(!ct) return;
+      const f = el.dataset.field;
+      ct[f] = (f==='name') ? el.value : parseFloat(el.value)||0;
+      saveState(); render();
+    };
+  });
+
+  bindAction('add-contract', ()=>{
+    const m = getMonth(state.currentMonth);
+    const nc = {id:uid(), name:'Novo contrato', totalValue:0, commissionPercent:0, costs:[]};
+    m.agency.contracts.push(nc);
+    openItemId = nc.id;
+    saveState(); render();
+  });
+
+  main.querySelectorAll('[data-action="remove-contract"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      m.agency.contracts = m.agency.contracts.filter(x=>x.id!==el.dataset.id);
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-action="add-contract-cost"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      const ct = m.agency.contracts.find(x=>x.id===el.dataset.id);
+      if(!ct) return;
+      ct.costs = ct.costs||[];
+      ct.costs.push({id:uid(), desc:'Gasto', value:0});
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-action="remove-contract-cost"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      const ct = m.agency.contracts.find(x=>x.id===el.dataset.parent);
+      if(!ct) return;
+      ct.costs = ct.costs.filter(x=>x.id!==el.dataset.id);
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('input[data-group="contract-cost"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const ct = m.agency.contracts.find(x=>x.id===el.dataset.parent);
+      if(!ct) return;
+      const cc = ct.costs.find(x=>x.id===el.dataset.id);
+      if(!cc) return;
+      const f = el.dataset.field;
+      cc[f] = (f==='value') ? parseFloat(el.value)||0 : el.value;
+      saveState(); render();
+    };
+  });
+
+  // KAUAN FIXED COSTS
+  bindAction('add-kauan-fixed', ()=>{
+    const m = getMonth(state.currentMonth);
+    m.kauan.fixedCosts.push({id:uid(), desc:'Custo fixo', value:0});
+    saveState(); render();
+  });
+
+  main.querySelectorAll('[data-action="remove-kauan-fixed"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      m.kauan.fixedCosts = m.kauan.fixedCosts.filter(x=>x.id!==el.dataset.id);
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('input[data-group="kauan-fixed"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const fc = m.kauan.fixedCosts.find(x=>x.id===el.dataset.id);
+      if(!fc) return;
+      const f = el.dataset.field;
+      fc[f] = (f==='value') ? parseFloat(el.value)||0 : el.value;
+      saveState(); render();
+    };
+  });
+
+  // JOBS
+  bindAction('add-job', ()=>{
+    const m = getMonth(state.currentMonth);
+    const nj = {id:uid(), name:'Novo job', type:'publicidade', value:0, commissionPercent:0, variableCosts:[]};
+    m.kauan.jobs.push(nj);
+    openItemId = nj.id;
+    saveState(); render();
+  });
+
+  main.querySelectorAll('[data-action="remove-job"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      m.kauan.jobs = m.kauan.jobs.filter(x=>x.id!==el.dataset.id);
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('input[data-group="job"], select[data-group="job"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const j = m.kauan.jobs.find(x=>x.id===el.dataset.id);
+      if(!j) return;
+      const f = el.dataset.field;
+      j[f] = (f==='name'||f==='type') ? el.value : parseFloat(el.value)||0;
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-action="add-job-cost"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      const j = m.kauan.jobs.find(x=>x.id===el.dataset.id);
+      if(!j) return;
+      j.variableCosts = j.variableCosts||[];
+      j.variableCosts.push({id:uid(), desc:'Custo', value:0});
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('[data-action="remove-job-cost"]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = getMonth(state.currentMonth);
+      const j = m.kauan.jobs.find(x=>x.id===el.dataset.parent);
+      if(!j) return;
+      j.variableCosts = j.variableCosts.filter(x=>x.id!==el.dataset.id);
+      saveState(); render();
+    };
+  });
+
+  main.querySelectorAll('input[data-group="job-cost"]').forEach(el=>{
+    el.onchange = ()=>{
+      const m = getMonth(state.currentMonth);
+      const j = m.kauan.jobs.find(x=>x.id===el.dataset.parent);
+      if(!j) return;
+      const vc = j.variableCosts.find(x=>x.id===el.dataset.id);
+      if(!vc) return;
+      const f = el.dataset.field;
+      vc[f] = (f==='value') ? parseFloat(el.value)||0 : el.value;
+      saveState(); render();
+    };
+  });
+
+  // COMPROVANTES
+  main.querySelectorAll('[data-action="pick-receipt"]').forEach(el=>{
+    el.onchange = async (ev)=>{
+      const file = ev.target.files[0];
+      if(!file) return;
+      if(file.size > 8*1024*1024){ showToast('Arquivo muito grande (máx. 8MB)'); return; }
+      const entity = findEntityById(el.dataset.entity);
+      if(!entity) return;
+      const dataUrl = await fileToDataUrl(file);
+      entity.receipt = {fileName:file.name, mimeType:file.type, dataUrl, driveFileId:null, driveLink:null, uploadedAt:null};
+      saveState(); render();
+      if(accessToken) doUploadReceipt(entity, el.dataset.category);
+    };
+  });
+
+  main.querySelectorAll('[data-action="upload-receipt"]').forEach(el=>{
+    el.onclick = ()=>{
+      const entity = findEntityById(el.dataset.entity);
+      if(!entity) return;
+      doUploadReceipt(entity, el.dataset.category);
+    };
+  });
+
+  // AJUSTES
+  bindAction('save-client-id', ()=>{
+    const val = document.getElementById('googleClientIdInput').value.trim();
+    state.config.googleClientId = val;
+    tokenClient = null;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('Client ID salvo');
+  });
+
+  bindAction('connect-google', ()=>{ connectGoogle(); });
+
+  bindAction('sync-now', async ()=>{
+    if(!accessToken){ showToast('Conecte-se ao Google primeiro'); return; }
+    showToast('Sincronizando...');
+    try{
+      await pushBackupToDrive();
+      await syncSheet();
+      state.config.lastSync = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+      showToast('Sincronizado com sucesso');
+    }catch(e){ showToast('Erro ao sincronizar'); }
+  });
+
+  bindAction('export', ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-financeiro-'+state.currentMonth+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Backup exportado');
+  });
+
+  bindAction('import', ()=>{
+    const txt = document.getElementById('importArea').value.trim();
+    if(!txt) return;
+    try{
+      const parsed = JSON.parse(txt);
+      if(!parsed.config || !parsed.months) throw new Error('formato inválido');
+      state = parsed;
+      saveState();
+      showToast('Backup importado com sucesso');
+      render();
+    }catch(e){
+      showToast('Erro ao importar: arquivo inválido');
+    }
+  });
+
+  bindAction('clear-month', ()=>{
+    if(!confirm('Tem certeza que deseja limpar os dados deste mês? Esta ação não pode ser desfeita.')) return;
+    state.months[state.currentMonth] = emptyMonthPayload();
+    saveState(); render();
+    showToast('Dados do mês limpos');
+  });
+
+  function bindAction(name, fn){
+    main.querySelectorAll(`[data-action="${name}"]`).forEach(el=> el.onclick = fn );
+  }
+}
+
+/* ==================== NAV / HEADER ==================== */
+document.querySelectorAll('nav.tabbar button').forEach(btn=>{
+  btn.onclick = ()=>{
+    activeTab = btn.dataset.tab;
+    openItemId = null;
+    document.querySelectorAll('nav.tabbar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+});
+
+document.getElementById('prevMonth').onclick = ()=>{
+  state.currentMonth = shiftMonthKey(state.currentMonth, -1);
+  saveState(); render();
+};
+document.getElementById('nextMonth').onclick = ()=>{
+  state.currentMonth = shiftMonthKey(state.currentMonth, 1);
+  saveState(); render();
+};
+
+document.getElementById('orgName').oninput = (e)=>{ state.config.orgName = e.target.textContent; saveState(); };
+document.getElementById('orgSubtitle').oninput = (e)=>{ state.config.subtitle = e.target.textContent; saveState(); };
+
+/* ==================== INIT ==================== */
+getMonth(state.currentMonth);
+localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+render();
+window.addEventListener('load', ()=>{ if(state.config.googleClientId) initGoogleAuth(); });
+</script>
+</body>
+</html>
